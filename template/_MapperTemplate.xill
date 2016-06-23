@@ -1,0 +1,31 @@
+/**
+ * Project: demo_drupal_aem
+ * Author: Titus Nachbauer
+ * Date: 2016-06-15
+ *
+ * Auto-generated _MapContentTypes.xill
+ * PLEASE DO NOT CHANGE
+ * Run Build.xill to generate
+ */
+
+__MAPPING_CHECKSUM__
+ 
+use System, String;
+
+  
+__INCLUDE_MAPPING__
+
+//-------------------------------------------------------------------------
+//						  SETUP
+//-------------------------------------------------------------------------
+
+
+//-------------------------------------------------------------------------
+//						  FUNCTIONS
+//-------------------------------------------------------------------------
+
+function mapObject(object, contentType) {
+    var result = {};
+__IF_MAPPING__
+    return result;
+}

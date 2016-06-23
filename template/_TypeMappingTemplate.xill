@@ -1,0 +1,38 @@
+/**
+ * Project: [Name_of_project]
+ * Author: [Name_of_author] 
+ * Date: [YYY-MM-DD]
+ *
+ * [Name_of_robot] converts a Drupal node of ContentType '[Name_of_content_type]' to UDM
+ * To use: replace 'Something' by the name of your ContentType
+ */
+
+include lib.util.Util;
+include connector.drupal.Commons;
+
+//-------------------------------------------------------------------------
+//						  PUBLIC FUNCTIONS
+//-------------------------------------------------------------------------
+
+function getSomethingParentType() {
+    //Return the content type of the parent (typically "Default") or null 
+    //when there is no parent template.
+    //Advanded mode: You may also return a list of strings containing the names of several parents
+    //to inherit fields from.
+    return null;
+}
+
+//Change the name of this function to map[Name_of_content_type]
+function mapSomething(document, data) {
+    document += {
+        //Insert field mapping here
+        //Note that existing fields and decorators will be replaced when overriden,
+        //because of the way object concatenation works in Xill. Address fields
+        //individually, using the dot-notation for more fine grained control.
+    };
+    return document;
+}
+
+//-------------------------------------------------------------------------
+//						  PRIVATE FUNCTIONS
+//-------------------------------------------------------------------------

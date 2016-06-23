@@ -1,0 +1,152 @@
+/**
+ * Project: demo_drupal_aem
+ * Author: Titus Nachbauer, Ernst van Rheenen
+ * Date: 2016-06-23
+ *
+ * Build.xill provides generates Mapper.xill in the appropriate config/ subfolder, 
+ * which will include all mapping scripts in the mappings subfolder and runs the appropriate
+ * script based on the provided ContentType.
+ */
+
+use System, Stream, File, String, Properties;
+
+include lib.util.Util;
+
+
+//-------------------------------------------------------------------------
+//						  SETUP
+//-------------------------------------------------------------------------
+
+// get the build arguments passed by the calling bot or else use the defaults set in defaults.properties
+argument buildSettings = {
+    "mappingPath" : Properties.get("connector.export.mappingPath"),
+    "mapper" : Properties.get ("connector.export.mapper"),
+};
+
+buildSettings.templatePath = Properties.get("lib.mapper.template"); 
+
+//-------------------------------------------------------------------------
+//						  MAIN
+//-------------------------------------------------------------------------
+
+buildSettings.mappings = getMappings(buildSettings.mappingPath);
+buildSettings.checksum = generateChecksumFromList(buildSettings.mappings);
+
+    System.print("buildSettings: " :: buildSettings, "debug");
+    
+
+generateMapper(buildSettings);
+return buildSettings.checksum;
+
+//-------------------------------------------------------------------------
+//						  FUNCTIONS
+//-------------------------------------------------------------------------
+
+/**
+* Returns any mapping robots in the provided folder, assuming it only contains 
+* mapping robots.
+*/
+private function getMappings(mappingFolder) {
+    do {
+        return collect(filter<isXillFile>(File.iterateFiles(mappingFolder, false)));
+    } fail (error) {
+        System.print ("Error getting mapping robots: " :: error, "error");
+    }
+}
+
+/**
+* Generate a main mapping robot based on the provided mappings and save it
+* at the provided location.
+*/
+private function generateMapper(buildSettings) {
+    var template = getMappingBotTemplate(buildSettings.templatePath);
+    var includeStatements = "";
+    var ifStatements = "";
+    foreach (mapping in buildSettings.mappings) {
+        includeStatements = addIncludeStatement(includeStatements, mapping);
+        ifStatements = addIfStatement(ifStatements, mapping);
+    }
+    saveMapper(buildSettings.mapper, template, includeStatements, ifStatements, getChecksumStatement(buildSettings.checksum));
+}
+
+/**
+* Returns the text of the mapping bot template file
+*/
+private function getMappingBotTemplate(templatePath) {
+    do {
+        var file = File.openRead(templatePath);
+        return Stream.getText(file);
+    } fail (error) {
+        System.print ("Error opening or reading mapping bot template: " :: error, "error");
+    }
+}
+
+/**
+* Adds an include-statement for current mapping to the input string.
+*/
+private function addIncludeStatement(includeStatements, mapping) {
+    var newInclude = "include " :: getMappingFQName(mapping) :: ";\n";
+    
+    return includeStatements :: newInclude;
+}
+
+/**
+* Adds an if-statement (switch) for mapping to the input string.
+*/
+private function addIfStatement(ifStatements, mapping) {
+    var newIf = "";
+    
+    if (ifStatements == "") {
+        newIf = "    if (";
+    } else {
+        newIf = " else if (";
+    }
+    newIf = newIf :: "String.toLower(contentType) == String.toLower(\"" :: getMappingName (mapping) :: "\")) {" :: 
+        getMapBlock(getMappingName(mapping)) :: "
+    }";
+    return ifStatements :: newIf;
+}
+
+private function getMapBlock(contentType) {
+    var block = "
+        var parentContentType = get__CONTENTTYPE__ParentType();
+        if(parentContentType != null && parentContentType != \"\") {
+            foreach(type in parentContentType) {
+                var parent = mapObject(object, type);
+                result += map__CONTENTTYPE__(parent, object);
+            }
+        } else {
+            result = map__CONTENTTYPE__({}, object);
+        }";
+    return String.replace(block, "__CONTENTTYPE__", contentType, false);
+}
+
+private function getChecksumStatement (checksum) {
+    return "// Checksum: " :: checksum;
+}
+
+/**
+* Save the previously generated include- and if-statements to the central mapping bot 
+*/
+private function saveMapper(mapperPath, template, includeStatements, ifStatements, checksumStatement) {
+    //Add checksum
+    template = String.replace(template, "__MAPPING_CHECKSUM__", checksumStatement, false, false);
+    //Add includes
+    template = String.replace(template, "__INCLUDE_MAPPING__", includeStatements, false, false);
+    //Add if-statements
+    template = String.replace(template, "__IF_MAPPING__", ifStatements, false, false);
+    //save mapping file
+    saveFile(mapperPath, template);
+}
+
+/**
+* Returns the checksum stored in the currently generated mapping bot or null if there is no mapping bot yet.
+*/
+private function getMappingChecksum(mapperPath) {
+    var result = null;
+    if (File.exists(mapperPath)) {
+        var text = File.getText(mapperPath);
+        result = String.replace(text, ".*// Checksum: ([0-9,a-f]{32}).*", "$1");
+    }
+    return result;
+}
