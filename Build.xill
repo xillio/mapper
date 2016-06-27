@@ -1,5 +1,5 @@
 /**
- * Project: demo_drupal_aem
+ * Project: Mapper
  * Author: Titus Nachbauer, Ernst van Rheenen
  * Date: 2016-06-23
  *
@@ -62,11 +62,20 @@ private function generateMapper(buildSettings) {
     var template = getMappingBotTemplate(buildSettings.templatePath);
     var includeStatements = "";
     var ifStatements = "";
+    var typeStatements = "";
     foreach (mapping in buildSettings.mappings) {
         includeStatements = addIncludeStatement(includeStatements, mapping);
         ifStatements = addIfStatement(ifStatements, mapping);
+        typeStatements = addTypeStatement(typeStatements, mapping);
     }
-    saveMapper(buildSettings.mapper, template, includeStatements, ifStatements, getChecksumStatement(buildSettings.checksum));
+    
+    var replacements = {
+    	"__INCLUDE_MAPPING__" : includeStatements, 
+    	"__IF_MAPPING__" : ifStatements, 
+    	"__TYPE_MAPPING__" : typeStatements, 
+    	"__MAPPING_CHECKSUM__" : getChecksumStatement(buildSettings.checksum)	
+    };
+    saveMapper(buildSettings.mapper, template, replacements);
 }
 
 /**
@@ -95,13 +104,12 @@ private function addIncludeStatement(includeStatements, mapping) {
 */
 private function addIfStatement(ifStatements, mapping) {
     var newIf = "";
-    
     if (ifStatements == "") {
-        newIf = "    if (";
+        newIf = "	if ";
     } else {
-        newIf = " else if (";
+        newIf = "	else if ";
     }
-    newIf = newIf :: "String.toLower(contentType) == String.toLower(\"" :: getMappingName (mapping) :: "\")) {" :: 
+    newIf = newIf :: "(contentType == \"" :: getMappingName (mapping) :: "\") {" :: 
         getMapBlock(getMappingName(mapping)) :: "
     }";
     return ifStatements :: newIf;
@@ -109,7 +117,7 @@ private function addIfStatement(ifStatements, mapping) {
 
 private function getMapBlock(contentType) {
     var block = "
-        var parentContentType = get__CONTENTTYPE__ParentType();
+        var parentContentType = get__CONTENTTYPE__ParentTemplate();
         if(parentContentType != null && parentContentType != \"\") {
             foreach(type in parentContentType) {
                 var parent = mapObject(object, type);
@@ -121,6 +129,24 @@ private function getMapBlock(contentType) {
     return String.replace(block, "__CONTENTTYPE__", contentType, false);
 }
 
+private function addTypeStatement(typeStatements, mapping) {
+    var newIf = "";
+    if (typeStatements == "") {
+        newIf = "		if ";
+    } else {
+        newIf = "		else if ";
+    }
+	return typeStatements :: newIf :: getTypeMappingBlock(mapping);
+}
+
+private function getTypeMappingBlock(contentType) {
+	contentType = getMappingName(contentType);
+    var block = "(get__CONTENTTYPE__SourceType() == type || Collection.contains(get__CONTENTTYPE__SourceType(), type)) {
+			return \"__CONTENTTYPE__\";
+		}\n";
+    return String.replace(block, "__CONTENTTYPE__", contentType, false);	
+}
+
 private function getChecksumStatement (checksum) {
     return "// Checksum: " :: checksum;
 }
@@ -128,14 +154,10 @@ private function getChecksumStatement (checksum) {
 /**
 * Save the previously generated include- and if-statements to the central mapping bot 
 */
-private function saveMapper(mapperPath, template, includeStatements, ifStatements, checksumStatement) {
-    //Add checksum
-    template = String.replace(template, "__MAPPING_CHECKSUM__", checksumStatement, false, false);
-    //Add includes
-    template = String.replace(template, "__INCLUDE_MAPPING__", includeStatements, false, false);
-    //Add if-statements
-    template = String.replace(template, "__IF_MAPPING__", ifStatements, false, false);
-    //save mapping file
+private function saveMapper(mapperPath, template, replacements) {
+	foreach(label, replacement in replacements) {
+		template = String.replace(template, label, replacement, false);
+	}
     saveFile(mapperPath, template);
 }
 
@@ -149,4 +171,28 @@ private function getMappingChecksum(mapperPath) {
         result = String.replace(text, ".*// Checksum: ([0-9,a-f]{32}).*", "$1");
     }
     return result;
+}
+
+/**
+* Returns the name of the mapping, assuming it is a path to a .xill mapping robot,
+* which has the mapped contentType as file name using the correct casing.
+*/
+function getMappingName(mapping) {
+    return toUpperCamelCase(String.replace(mapping, ".*[/\\\\]([^/\\\\]*?)\\.xill", "$1"));
+}
+
+/**
+* Returns a call to a standardized mapping function with the ContentType of the current mapping
+*/
+function getMappingFunction(mapping) {
+    return "map" :: getMappingName(mapping) :: "(object)";
+}
+
+/**
+* Returns the fully qualified path used to include mapping. 
+*/
+function getMappingFQName(mapping) {
+    var searchString = normalizeSlashes(System.info().projectPath) :: "/(.*)\\.xill";
+    var relativePath = (String.replace(normalizeSlashes(mapping), searchString, "$1"));
+    return (String.replace (relativePath, "[/\\\\]", "."));
 }
