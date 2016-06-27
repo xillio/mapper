@@ -11,15 +11,10 @@
 
 __MAPPING_CHECKSUM__
  
-use System, String, Collection;
+use System, String, Collection, Assert;
 
   
 __INCLUDE_MAPPING__
-
-//-------------------------------------------------------------------------
-//						  SETUP
-//-------------------------------------------------------------------------
-
 
 //-------------------------------------------------------------------------
 //						  FUNCTIONS
@@ -33,7 +28,7 @@ __IF_MAPPING__
 
 function mapSourceToTargetType(contentType) {
 	foreach(type in [contentType, "DEFAULT"]) {
-__TYPE_MAPPING__	
+__TYPE_MAPPING__
 	}
 	Assert.error("No template match found for contentType: " :: contentType);
 }
