@@ -141,7 +141,7 @@ private function addTypeStatement(typeStatements, mapping) {
 
 private function getTypeMappingBlock(contentType) {
 	contentType = getMappingName(contentType);
-    var block = "(get__CONTENTTYPE__SourceType() == type || Collection.contains(get__CONTENTTYPE__SourceType(), type)) {
+    var block = "((System.typeOf(get__CONTENTTYPE__SourceType()) == \"ATOMIC\" && get__CONTENTTYPE__SourceType() == type) || (System.typeOf(get__CONTENTTYPE__SourceType()) == \"LIST\" && Collection.contains(get__CONTENTTYPE__SourceType(), type))) {
 			return \"__CONTENTTYPE__\";
 		}\n";
     return String.replace(block, "__CONTENTTYPE__", contentType, false);	
