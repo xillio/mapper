@@ -10,7 +10,7 @@
 
 use System, Stream, File, String, Properties;
 
-include lib.util.Util;
+include lib.util.AllUtil;
 
 
 //-------------------------------------------------------------------------
