@@ -20,15 +20,43 @@ __INCLUDE_MAPPING__
 //						  FUNCTIONS
 //-------------------------------------------------------------------------
 
+/**
+ * Call this function to map an object to the specified ContentType. The function relays the request to
+ * the appropriate mapping file as found during the build process.
+ * Arguments:
+ *   data: The data variable that needs to be converted. Typically an object, but can really be anything
+ *   contentType: Name of the target content type
+ * Returns:
+ * The converted object
+ */
 function mapObject(object, contentType) {
     var result = {};
 __IF_MAPPING__
+	else {
+		Assert.error("Unsupported contentType: " :: contentType);
+	}
     return result;
 }
 
-function mapSourceToTargetType(contentType) {
+/**
+* Call this function to translate a source content type to a target content type. The function relays
+* the request to the appropriate mapping file as found during the build process.
+* Arguments:
+*   contentType: The name of the source content type
+*   context: Any context you want to provide to your mapping files
+* Returns:
+* The name of the target content type
+*/
+function mapSourceToTargetType(contentType, context) {
 	foreach(type in [contentType, "DEFAULT"]) {
+		var targetType = null;
 __TYPE_MAPPING__
 	}
 	Assert.error("No template match found for contentType: " :: contentType);
+}
+
+private function matchTargetType(sourceType, typeToMatch, targetType) {
+	if (sourceType != null && (sourceType == typeToMatch || (System.typeOf(sourceType) == "LIST" && Collection.contains(sourceType, typeToMatch)))) {
+		return targetType;
+	}
 }

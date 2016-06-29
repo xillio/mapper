@@ -22,10 +22,13 @@ include lib.util.Util;
 // To make this template the default for any sourceType that is not supported by
 // your other templates, add the keyword "DEFAULT" to the list of returned types.
 //
+// The context parameter is the same context that is passed when calling Mapper.mapSourceToTargetType
+// and can be used to make an on-the-spot decision wether or not to support a contentType
+//
 // Note: Returning null disables this mapping template for the type mapper. 
 // Return null for example if you want to use this template only as a parent for other templates,
 // but never as a stand alone mapping template
-function getSomethingSourceType() {
+function getSomethingSourceType(context) {
 	return null;	
 }
 

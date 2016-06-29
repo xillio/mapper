@@ -130,20 +130,15 @@ private function getMapBlock(contentType) {
 }
 
 private function addTypeStatement(typeStatements, mapping) {
-    var newIf = "";
-    if (typeStatements == "") {
-        newIf = "		if ";
-    } else {
-        newIf = "		else if ";
-    }
-	return typeStatements :: newIf :: getTypeMappingBlock(mapping);
+	return typeStatements :: getTypeMappingBlock(mapping);
 }
 
 private function getTypeMappingBlock(contentType) {
 	contentType = getMappingName(contentType);
-    var block = "((System.typeOf(get__CONTENTTYPE__SourceType()) == \"ATOMIC\" && get__CONTENTTYPE__SourceType() == type) || (System.typeOf(get__CONTENTTYPE__SourceType()) == \"LIST\" && Collection.contains(get__CONTENTTYPE__SourceType(), type))) {
-			return \"__CONTENTTYPE__\";
-		}\n";
+    var block = "
+    	targetType = matchTargetType(get__CONTENTTYPE__SourceType(context), type, \"__CONTENTTYPE__\");
+		if (targetType != null) { return targetType; }
+		";
     return String.replace(block, "__CONTENTTYPE__", contentType, false);	
 }
 
