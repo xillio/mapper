@@ -1,0 +1,57 @@
+/**
+ * Project: [Name_of_project]
+ * Author: [Name_of_author] 
+ * Date: [YYYY-MM-DD]
+ *
+ * TYPE MAPPING
+ *
+ * [Name_of_robot] converts a Drupal node of ContentType '[Name_of_content_type]' to UDM
+ * To use: rename all functions by replacing the word 'Something' by the name of your ContentType
+ */
+
+include lib.util.AllUtil;
+
+//-------------------------------------------------------------------------
+//						  PUBLIC FUNCTIONS
+//-------------------------------------------------------------------------
+
+
+// Return the name or list of names of supported source types that can be converted by this
+// template.
+//
+// To make this template the default for any sourceType that is not supported by
+// your other templates, add the keyword "DEFAULT" to the list of returned types.
+//
+// The context parameter is the same context that is passed when calling Mapper.mapSourceToTargetType
+// and can be used to make an on-the-spot decision wether or not to support a contentType
+//
+// Note: Returning null disables this mapping template for the type mapper. 
+// Return null for example if you want to use this template only as a parent for other templates,
+// but never as a stand alone mapping template
+function getSomethingSourceType(context) {
+	return null;	
+}
+
+// Return the name of the parent mapping template (typically "Default") or null 
+// when there is no parent template.
+//
+// Advanced mode: You may also return a list of strings containing the names of several parents
+// to inherit fields from.
+function getSomethingParentTemplate() {
+    return null;
+}
+
+//Change the name of this function to map[Name_of_content_type]
+function mapSomething(document, data) {
+    document += {
+        //Insert field mapping here
+        //Note that existing fields and decorators will be replaced when overriden,
+        //because of the way object concatenation works in Xill. Address fields
+        //individually, using the dot-notation for more fine grained control.
+    };
+    return document;
+}
+
+//-------------------------------------------------------------------------
+//						  PRIVATE FUNCTIONS
+//-------------------------------------------------------------------------
