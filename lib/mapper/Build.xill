@@ -46,9 +46,13 @@ return buildSettings.checksum;
 * Returns any mapping robots in the provided folder, assuming it only contains 
 * mapping robots.
 */
-private function getMappings(mappingFolder) {
+private function getMappings(mappingFolders) {
     do {
-        return collect(filter<isXillFile>(File.iterateFiles(mappingFolder, false)));
+	    var files = [];
+		foreach(path in String.split(mappingFolders, ",")) {
+			files += collect(filter<isXillFile>(File.iterateFiles(path, false)));
+		}
+        return files;
     } fail (error) {
         System.print ("Error getting mapping robots: " :: error, "error");
     }
