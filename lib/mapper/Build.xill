@@ -28,7 +28,7 @@ buildSettings.templatePath = Properties.get("lib.mapper.template");
 //-------------------------------------------------------------------------
 //						  MAIN
 //-------------------------------------------------------------------------
-buildSettings.mappingPath = String.split(buildSettings.mappingPath, ",");
+buildSettings.mappingPath = String.split(buildSettings.mappingPath, ";");
 buildSettings.mappings = getMappings(buildSettings.mappingPath);
 buildSettings.checksum = generateChecksumFromList(buildSettings.mappings);
 
