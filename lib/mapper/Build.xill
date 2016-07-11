@@ -10,7 +10,7 @@
 
 use System, Stream, File, String, Properties;
 
-include lib.util.AllUtil;
+include lib.util.Util;
 
 
 //-------------------------------------------------------------------------
@@ -28,7 +28,7 @@ buildSettings.templatePath = Properties.get("lib.mapper.template");
 //-------------------------------------------------------------------------
 //						  MAIN
 //-------------------------------------------------------------------------
-
+buildSettings.mappingPath = String.split(buildSettings.mappingPath, ";");
 buildSettings.mappings = getMappings(buildSettings.mappingPath);
 buildSettings.checksum = generateChecksumFromList(buildSettings.mappings);
 
@@ -43,12 +43,18 @@ return buildSettings.checksum;
 //-------------------------------------------------------------------------
 
 /**
-* Returns any mapping robots in the provided folder, assuming it only contains 
+* Returns any mapping robots in the provided folder(s), assuming it only contains 
 * mapping robots.
+* Arguments:
+*   mappingFolders: Path or list of paths to be scanned for mapping files
 */
-private function getMappings(mappingFolder) {
+private function getMappings(mappingFolders) {
     do {
-        return collect(filter<isXillFile>(File.iterateFiles(mappingFolder, false)));
+	    var files = [];
+		foreach(path in mappingFolders) {
+			files += collect(filter<isXillFile>(File.iterateFiles(path, false)));
+		}
+        return files;
     } fail (error) {
         System.print ("Error getting mapping robots: " :: error, "error");
     }
