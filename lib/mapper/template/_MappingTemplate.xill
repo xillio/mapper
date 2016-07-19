@@ -9,7 +9,7 @@
  * To use: rename all functions by replacing the word 'Something' by the name of your ContentType
  */
 
-include lib.util.AllUtil;
+include lib.util.Util;
 
 //-------------------------------------------------------------------------
 //						  PUBLIC FUNCTIONS
