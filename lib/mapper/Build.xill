@@ -8,9 +8,9 @@
  * script based on the provided ContentType.
  */
 
-use System, Stream, File, String, Properties;
+use System, Stream, File, String, Properties, Assert;
 
-include lib.util.Util;
+include lib.util.AllUtil;
 
 
 //-------------------------------------------------------------------------
@@ -20,7 +20,7 @@ include lib.util.Util;
 // get the build arguments passed by the calling bot or else use the defaults set in defaults.properties
 argument buildSettings = {
     "mappingPath" : Properties.get("connector.export.mappingPath"),
-    "mapper" : Properties.get ("connector.export.mapper"),
+    "mapperType" : Properties.get ("connector.export.mapperType"),
 };
 
 buildSettings.templatePath = Properties.get("lib.mapper.template"); 
@@ -33,7 +33,10 @@ buildSettings.mappings = getMappings(buildSettings.mappingPath);
 buildSettings.checksum = generateChecksumFromList(buildSettings.mappings);
 
     System.print("buildSettings: " :: buildSettings, "debug");
-    
+
+if(!String.matches(String.toLower(buildSettings.mapperType), "(export|import)")) {
+	Assert.error("lib.mapper.Build: Argument mapperType should be either 'export' or 'import'. Found: " :: buildSettings.mapperType);
+}
 
 generateMapper(buildSettings);
 return buildSettings.checksum;
@@ -81,7 +84,7 @@ private function generateMapper(buildSettings) {
     	"__TYPE_MAPPING__" : typeStatements, 
     	"__MAPPING_CHECKSUM__" : getChecksumStatement(buildSettings.checksum)	
     };
-    saveMapper(buildSettings.mapper, template, replacements);
+    saveMapper("config/" :: buildSettings.mapperType :: "/Mapper.xill", template, replacements);
 }
 
 /**
