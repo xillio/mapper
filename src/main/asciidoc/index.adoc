@@ -1,5 +1,5 @@
 = Mapper library
-Thomas Biesaart <thomas.biesaart@xillio.com>; Pieter Dirk Soels <pieter.soels@xillio.nl>; Sander Visser <sander.visser@xillio.nl>
+Xillio
 :toc: left
 :sectnums:
 :sectlinks:
