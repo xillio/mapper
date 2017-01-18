@@ -1,0 +1,12 @@
+= Mapper library
+Xillio
+:toc: left
+:sectnums:
+:sectlinks:
+:chapter-label:
+:icons: font
+:highlightjs-theme: googlecode
+:docinfo1:
+
+:todo-description: Write documentation for this library (see corresponding task)
+include::_snippets/todo.adoc[]
