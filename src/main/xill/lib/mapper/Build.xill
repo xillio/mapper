@@ -8,7 +8,7 @@
  * script based on the provided ContentType.
  */
 
-use System, Stream, File, String, Properties, Assert;
+use System, Stream, File, String, Properties, Assert,Collection;
 
 include lib.util.AllUtil;
 
@@ -19,8 +19,7 @@ include lib.util.AllUtil;
 
 // get the build arguments passed by the calling bot or else use the defaults set in defaults.properties
 argument buildSettings = {
-    "mappingPath" : Properties.get("connector.export.mappingPath"),
-    "mapperType" : Properties.get ("connector.export.mapperType"),
+    "mappingPath" : Properties.get("connector.mappingPath"),
 };
 
 buildSettings.templatePath = Properties.get("lib.mapper.template"); 
@@ -34,9 +33,6 @@ buildSettings.checksum = generateChecksumFromList(buildSettings.mappings);
 
     System.print("buildSettings: " :: buildSettings, "debug");
 
-if(!String.matches(String.toLower(buildSettings.mapperType), "(export|import)")) {
-	Assert.error("lib.mapper.Build: Argument mapperType should be either 'export' or 'import'. Found: " :: buildSettings.mapperType);
-}
 
 generateMapper(buildSettings);
 return buildSettings.checksum;
@@ -53,9 +49,17 @@ return buildSettings.checksum;
 */
 private function getMappings(mappingFolders) {
     do {
-	    var files = [];
+	    var files = {};
 		foreach(path in mappingFolders) {
-			files += collect(filter<isXillFile>(File.iterateFiles(path, false)));
+		    foreach(folder in File.iterateFolders(path,true)){
+		        if(String.endsWith(folder.path,"mapping")){
+		            var connectorName = String.split(folder.path,"\\\\")[Collection.length(String.split(folder.path,"\\\\"))-4];
+		            if(!Collection.containsKey(files,connectorName)){
+		                files[connectorName] = [];
+		            }
+			        files[connectorName] += collect(filter<isXillFile>(File.iterateFiles(folder.path, false)));
+			    }
+			}
 		}
         return files;
     } fail (error) {
@@ -68,23 +72,26 @@ private function getMappings(mappingFolders) {
 * at the provided location.
 */
 private function generateMapper(buildSettings) {
-    var template = getMappingBotTemplate(buildSettings.templatePath);
-    var includeStatements = "";
-    var ifStatements = "";
-    var typeStatements = "";
-    foreach (mapping in buildSettings.mappings) {
-        includeStatements = addIncludeStatement(includeStatements, mapping);
-        ifStatements = addIfStatement(ifStatements, mapping);
-        typeStatements = addTypeStatement(typeStatements, mapping);
+    foreach(name,connector in buildSettings.mappings){
+        var template = getMappingBotTemplate(buildSettings.templatePath);
+        var includeStatements = "";
+        var ifStatements = "";
+        var typeStatements = "";
+        foreach (mapping in connector) {
+            includeStatements = addIncludeStatement(includeStatements, mapping);
+            ifStatements = addIfStatement(ifStatements, mapping);
+            typeStatements = addTypeStatement(typeStatements, mapping);
+        }
+        
+        var replacements = {
+        	"__INCLUDE_MAPPING__" : includeStatements, 
+        	"__IF_MAPPING__" : ifStatements, 
+        	"__TYPE_MAPPING__" : typeStatements, 
+        	"__MAPPING_CHECKSUM__" : getChecksumStatement(buildSettings.checksum)	
+        };
+        var savePath = String.substring(connector[0],0,String.indexOf(connector[0],name)+String.length(name));
+        saveMapper(savePath :: "/UDM/" :: name :: "Mapper.xill", template, replacements);
     }
-    
-    var replacements = {
-    	"__INCLUDE_MAPPING__" : includeStatements, 
-    	"__IF_MAPPING__" : ifStatements, 
-    	"__TYPE_MAPPING__" : typeStatements, 
-    	"__MAPPING_CHECKSUM__" : getChecksumStatement(buildSettings.checksum)	
-    };
-    saveMapper("config/" :: buildSettings.mapperType :: "/Mapper.xill", template, replacements);
 }
 
 /**
