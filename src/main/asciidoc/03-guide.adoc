@@ -1,4 +1,17 @@
 = Guide
 
-:todo-description: Write down a guide on how to use this library
-include::_snippets/todo.adoc[]
+This is a step by step guide on how to create a working Mapper for your connectors.
+
+=== steps
+
+1. Add the mapper library to your connector framework project.
+
+2. Create a folder structure for your mappings. The structure can be connector specific but they *must* be named 'mappings'.
+These folders will contain the robots created in the following step.
+
+3. Make a robot for *each* sourceType and *each* targetType. The name of a mapping robot *must* be unique.
+The 'MappingTemplate.xill'-robot is the template that each of these mapping robots must follow.
+
+4. Run the 'Build.xill'. This will create the 'Mapper' robot in the '/config' folder of your project.
+
+
