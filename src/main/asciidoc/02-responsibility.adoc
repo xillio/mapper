@@ -1,0 +1,4 @@
+= Responsibilities
+
+:todo-description: Write down the responsibilities and scope of this library
+include::_snippets/todo.adoc[]
