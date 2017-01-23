@@ -1,0 +1,4 @@
+= How it works
+
+:todo-description: Write down how this library works behind the scenes and why certain design choices are made
+include::_snippets/todo.adoc[]
