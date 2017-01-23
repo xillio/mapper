@@ -1,11 +1,11 @@
 /**
  * Project: Mapper
- * Author: Titus Nachbauer, Ernst van Rheenen
+ * Author: Titus Nachbauer, Ernst van Rheenen, Sander Visser
  * Date: 2016-06-23
  *
- * Build.xill provides generates Mapper.xill in the appropriate config/ subfolder, 
- * which will include all mapping scripts in the mappings subfolder and runs the appropriate
- * script based on the provided ContentType.
+ * Build.xill generates a Mapper.xill in <rootFolder>/config/ 
+ * which will include all mapping scripts it can find in all subfolders named 'mappings' 
+ * and runs the appropriate script based on the provided ContentType.
  */
 
 use System, Stream, File, String, Properties, Assert,Collection;
@@ -17,46 +17,32 @@ include lib.util.AllUtil;
 //						  SETUP
 //-------------------------------------------------------------------------
 
-// get the build arguments passed by the calling bot or else use the defaults set in defaults.properties
-argument buildSettings = {
-    "mappingPath" : Properties.get("connector.mappingPath"),
-    "mapperTargetLocation" : Properties.get("lib.mapper.targetLocation")
-};
-
-buildSettings.templatePath = Properties.get("lib.mapper.template"); 
+var templatePath = "lib/mapper/template/_MapperTemplate.xill";
+var mappings = getMappings();
+var checksum = generateChecksumFromList(mappings);
 
 //-------------------------------------------------------------------------
 //						  MAIN
 //-------------------------------------------------------------------------
-buildSettings.mappingPath = String.split(buildSettings.mappingPath, ";");
-buildSettings.mappings = getMappings(buildSettings.mappingPath);
-buildSettings.checksum = generateChecksumFromList(buildSettings.mappings);
 
-    System.print("buildSettings: " :: buildSettings, "debug");
-
-
-generateMapper(buildSettings);
-return buildSettings.checksum;
+generateMapper();
+return checksum;
 
 //-------------------------------------------------------------------------
 //						  FUNCTIONS
 //-------------------------------------------------------------------------
 
 /**
-* Returns any mapping robots in the provided folder(s), assuming it only contains 
-* mapping robots.
-* Arguments:
-*   mappingFolders: Path or list of paths to be scanned for mapping files
+* Returns any mapping robots it can find starting from the rootfolder.
+* It is assumed that folders named 'mappings' only contain mapping robots.
 */
-private function getMappings(mappingFolders) {
+private function getMappings() {
     do {
 	    var files = [];
-		foreach(path in mappingFolders) {
-		    foreach(folder in File.iterateFolders(path,true)){
-		        if(String.endsWith(folder.path,"mapping")){
-			        files += collect(filter<isXillFile>(File.iterateFiles(folder.path, false)));
-			    }
-			}
+	    foreach(folder in File.iterateFolders("",true)){
+	        if(String.endsWith(folder.path,"mappings")){
+		        files += collect(filter<isXillFile>(File.iterateFiles(folder.path, false)));
+		    }
 		}
         return files;
     } fail (error) {
@@ -66,14 +52,14 @@ private function getMappings(mappingFolders) {
 
 /**
 * Generate a main mapping robot based on the provided mappings and save it
-* at the provided location.
+* at the rootFolder/config/
 */
-private function generateMapper(buildSettings) {
-        var template = getMappingBotTemplate(buildSettings.templatePath);
+private function generateMapper() {
+        var template = getMappingBotTemplate(templatePath);
         var includeStatements = "";
         var ifStatements = "";
         var typeStatements = "";
-        foreach (mapping in buildSettings.mappings) {
+        foreach (mapping in mappings) {
             includeStatements = addIncludeStatement(includeStatements, mapping);
             ifStatements = addIfStatement(ifStatements, mapping);
             typeStatements = addTypeStatement(typeStatements, mapping);
@@ -83,9 +69,9 @@ private function generateMapper(buildSettings) {
         	"__INCLUDE_MAPPING__" : includeStatements, 
         	"__IF_MAPPING__" : ifStatements, 
         	"__TYPE_MAPPING__" : typeStatements, 
-        	"__MAPPING_CHECKSUM__" : getChecksumStatement(buildSettings.checksum)	
+        	"__MAPPING_CHECKSUM__" : getChecksumStatement(checksum)	
         };
-        saveMapper(buildSettings.mapperTargetLocation :: "Mapper.xill", template, replacements);
+        saveMapper(template, replacements);
     
 }
 
@@ -160,11 +146,11 @@ private function getChecksumStatement (checksum) {
 /**
 * Save the previously generated include- and if-statements to the central mapping bot 
 */
-private function saveMapper(mapperPath, template, replacements) {
+private function saveMapper(template, replacements) {
 	foreach(label, replacement in replacements) {
 		template = String.replace(template, label, replacement, false);
 	}
-    saveFile(mapperPath, template);
+    saveFile("config/Mapper.xill", template);
 }
 
 /**
