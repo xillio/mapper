@@ -39,7 +39,7 @@ return checksum;
 private function getMappings() {
     do {
 	    var files = [];
-	    foreach(folder in File.iterateFolders("",true)){
+	    foreach(folder in File.iterateFolders(System.info().projectPath,true)){
 	        if(String.endsWith(folder.path,"mappings")){
 		        files += collect(filter<isXillFile>(File.iterateFiles(folder.path, false)));
 		    }
