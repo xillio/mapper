@@ -20,6 +20,7 @@ include lib.util.AllUtil;
 // get the build arguments passed by the calling bot or else use the defaults set in defaults.properties
 argument buildSettings = {
     "mappingPath" : Properties.get("connector.mappingPath"),
+    "mapperTargetLocation" : Properties.get("lib.mapper.targetLocation")
 };
 
 buildSettings.templatePath = Properties.get("lib.mapper.template"); 
@@ -49,15 +50,11 @@ return buildSettings.checksum;
 */
 private function getMappings(mappingFolders) {
     do {
-	    var files = {};
+	    var files = [];
 		foreach(path in mappingFolders) {
 		    foreach(folder in File.iterateFolders(path,true)){
 		        if(String.endsWith(folder.path,"mapping")){
-		            var connectorName = String.split(folder.path,"\\\\")[Collection.length(String.split(folder.path,"\\\\"))-4];
-		            if(!Collection.containsKey(files,connectorName)){
-		                files[connectorName] = [];
-		            }
-			        files[connectorName] += collect(filter<isXillFile>(File.iterateFiles(folder.path, false)));
+			        files += collect(filter<isXillFile>(File.iterateFiles(folder.path, false)));
 			    }
 			}
 		}
@@ -72,12 +69,11 @@ private function getMappings(mappingFolders) {
 * at the provided location.
 */
 private function generateMapper(buildSettings) {
-    foreach(name,connector in buildSettings.mappings){
         var template = getMappingBotTemplate(buildSettings.templatePath);
         var includeStatements = "";
         var ifStatements = "";
         var typeStatements = "";
-        foreach (mapping in connector) {
+        foreach (mapping in buildSettings.mappings) {
             includeStatements = addIncludeStatement(includeStatements, mapping);
             ifStatements = addIfStatement(ifStatements, mapping);
             typeStatements = addTypeStatement(typeStatements, mapping);
@@ -89,9 +85,8 @@ private function generateMapper(buildSettings) {
         	"__TYPE_MAPPING__" : typeStatements, 
         	"__MAPPING_CHECKSUM__" : getChecksumStatement(buildSettings.checksum)	
         };
-        var savePath = String.substring(connector[0],0,String.indexOf(connector[0],name)+String.length(name));
-        saveMapper(savePath :: "/UDM/" :: name :: "Mapper.xill", template, replacements);
-    }
+        saveMapper(buildSettings.mapperTargetLocation :: "Mapper.xill", template, replacements);
+    
 }
 
 /**
