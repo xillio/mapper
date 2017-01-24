@@ -13,7 +13,6 @@ It contains three placeholders (`INCLUDE_MAPPING`, `IF_MAPPING`, `TYPE_MAPPING`)
     * The `addIfStatement` function append to the `ifStatements` variable. +
     * The `addTypeStatement` function append to the  `typeStatements` variable. +
 
-
 4. The saveMapper function is called. This will replace the placeholders in the template from step 2 with the variables from step 3.
    * `INCLUDE_MAPPING` is replaced with the `includeStatements` variable +
    * `IF_MAPING` is replaced with the `ifStatements` variable +
@@ -21,13 +20,11 @@ It contains three placeholders (`INCLUDE_MAPPING`, `IF_MAPPING`, `TYPE_MAPPING`)
 
 5. The resulting string will be saved as `Mapper.xill` in root/config/
 
-== Mapper functions
+== Mapper.xill functions
 
-The Mapper robot has two functions: mapObject and mapSourceToTargetType.
+The Mapper robot has two public functions: `mapObject and mapSourceToTargetType.
 
-=== mapObject
-
-function mapObject(object, contentType);
+=== mapObject(object, contentType)
 
 This function will map the object (first parameter) to the specified contentType (second parameter).
 
@@ -35,25 +32,38 @@ The function contains an if-statement for each contentType it could find during 
 If the provided contentType is equal to one of these contentTypes then it will run the following code:
 
 ----
-var parentContentType = getExampleParentTemplate();        // <1>
-if(parentContentType != null && parentContentType != "") { // <2>
-    foreach(type in parentContentType) {                   // <3>
+include ../Example.xill as example;                        // <1>
+...
+
+var parentContentType = example->getParentTemplate();      // <2>
+if(parentContentType != null && parentContentType != "") { // <3>
+    foreach(type in parentContentType) {                   // <4>
         var parent = mapObject(object, type);
-        result += mapExample(parent, object);
+        result += example->mapObject(parent, object);
     }
 } else {
-    result = mapExample({}, object);                       //<4>
+    result = example->mapObject({}, object);                // <5>
 }
 ----
 
-<1> Call the `getExampleParentTemplate` function from the included `Example.xill`
-<2> Check if the example mapping has a parentContentType
-<3> Iterate over these parentContentTypes and call mapObject on these parent before calling mapExample
-<4> The mapping does not have a parent so just call the mapExample function.
+<1> The mapping `Example.xill` gets qualified included, and its qualified name is the name of the robot. This results
+    in that the functions inside the mappings may contain the same names without any conflict happening. This is also
+    the reason why the mapping-robots *must* have a unique name.
+<2> Call the `getParentTemplate` function from the mapping to resolve its parents.
+<3> Check if the example mapping has a parentContentType.
+<4> Iterate over these parentContentTypes and call mapObject on these parent mappings before calling `example->mapObject`.
+    This results in that the result from the parent mapping gets enriched with the result from `example->mapObject`.
+<5> The mapping does not have a parent so just call the `example->mapObject` function.
 
-=== mapSourceToTargetType
-
-mapSourceToTargetType(contentType, context);
+=== mapSourceToTargetType(contentType, context)
 
 This function compares the provided contentType to the output of `getSourceType` function of each mapping.
 If the provided contentType is equal to one of these then the contentType of this mapping is returned.
+
+== Mapping.xill functions
+
+=== getSourceType(context)
+
+=== getParentTemplate()
+
+=== mapObject(document, data)
