@@ -1,5 +1,0 @@
-[glossary]
-= Glossary
-
-:todo-description: Write a glossary
-include::_snippets/todo.adoc[]

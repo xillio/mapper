@@ -14,7 +14,7 @@ Robots inside folders not named `mappings` will *NOT* be detected.
 3.  Insert (or create) the needed mappers in the corresponding `mappings` folders. To create a mapping, please read the
     <<building-a-mapping>> chapter.
 
-4. Run the `Build.xill`. This will create the `Mapper.xill` robot in the `./config` folder of your project.
+4. Run the `Build.xill` robot, which will create the `Mapper.xill` robot in the `./config` folder of your project.
 
 [#building-a-mapping]
 == Building a Mapping

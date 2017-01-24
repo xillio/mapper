@@ -16,7 +16,3 @@ include::01-introduction.adoc[leveloffset=1]
 include::02-responsibility.adoc[leveloffset=1]
 include::03-guide.adoc[leveloffset=1]
 include::04-how-it-works.adoc[leveloffset=1]
-
-
-include::05-FAQ.adoc[leveloffset=1]
-include::06-glossary.adoc[leveloffset=1]

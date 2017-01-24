@@ -1,7 +1,0 @@
-= FAQ
-
-[qanda]
-Question one::
-        Answer One.
-Question two::
-        Answer two.
