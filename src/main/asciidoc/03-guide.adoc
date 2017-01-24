@@ -2,18 +2,24 @@
 
 This is a guide on how to create a working mapper for your connectors.
 
+== Building a Mapper
 1. Add the mapper library to your connector framework project.
 
 2. Create a folder structure for your mappings. The structure can be connector specific but they *must* be named 'mappings'.
 These folders will contain the robots created in the following step.
-
-image::../images/FolderStructure.png[title=Example of possible folder structure]
-
+See the next chapter: _Building a Mapping_
 [IMPORTANT]
-robots inside folders not named 'mappings' will *NOT* be detected.
+Robots inside folders not named 'mappings' will *NOT* be detected.
 
 3. Make a robot for *each* sourceType and *each* targetType. The name of a mapping robot *must* be unique.
 The 'MappingTemplate.xill'-robot is the template that each of these mapping robots must follow.
 
 4. Run the 'Build.xill'. This will create the 'Mapper' robot in the '/config' folder of your project.
 
+== Building a Mapping
+1. Create a new robot named identical to the name of the contentType it will map to.
+2. Copy the code from the _MappingTemplate.xill and paste it into the newly created robot.
+3. Edit the `getSourceType` function to return a name (or list of names) of sourceTypes that can be converted by this mapping.
+4. Edit the `getParentTemplate` function to return a name (or list of names) of parent mappings. When an object is mapped to *this* contentType it will first call mapObject on these parents.
+   This function should return null if the mapping does not have any parents.
+5. Edit the `mapObject` function to return a new document based on the received data.

@@ -1,4 +1,2 @@
-
-
-:todo-description: Write an introduction
-include::_snippets/todo.adoc[]
+= Introduction
+This is the introduction.
