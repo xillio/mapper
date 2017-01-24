@@ -6,12 +6,14 @@ This is a guide on how to create a working mapper for your connectors.
 
 2. Create a folder structure for your mappings. The structure can be connector specific but they *must* be named 'mappings'.
 These folders will contain the robots created in the following step.
+
+image::../images/FolderStructure.png[title=Example of possible folder structure]
+
 [IMPORTANT]
 robots inside folders not named 'mappings' will *NOT* be detected.
+
 3. Make a robot for *each* sourceType and *each* targetType. The name of a mapping robot *must* be unique.
 The 'MappingTemplate.xill'-robot is the template that each of these mapping robots must follow.
 
 4. Run the 'Build.xill'. This will create the 'Mapper' robot in the '/config' folder of your project.
 
-
-image::/images/FileStructure.png[title=Example of possible folder structure]
