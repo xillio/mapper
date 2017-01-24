@@ -45,12 +45,12 @@ The function contains an if-statement for each contentType it could find during 
 If the provided contentType is equal to one of these contentTypes then it will run the following code:
 
 ----
-include ../Example.xill as example;                        // <1>
+include ../Example.xill as example;                         // <1>
 ...
 
-var parentContentType = example->getParentTemplate();      // <2>
-if(parentContentType != null && parentContentType != "") { // <3>
-    foreach(type in parentContentType) {                   // <4>
+var parentContentType = example->getParentTemplate();       // <2>
+if(parentContentType != null && parentContentType != "") {  // <3>
+    foreach(type in parentContentType) {                    // <4>
         var parent = mapObject(object, type);
         result += example->mapObject(parent, object);
     }
