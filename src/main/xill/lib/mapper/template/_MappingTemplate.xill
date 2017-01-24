@@ -3,10 +3,8 @@
  * Author: [Name_of_author] 
  * Date: [YYYY-MM-DD]
  *
- * TYPE MAPPING
+ * [Name_of_robot] converts source ContentType(s) '[Name_of_source_content_type(s)]' to [Name_of_robot]
  *
- * [Name_of_robot] converts a Drupal node of ContentType '[Name_of_content_type]' to UDM
- * To use: rename all functions by replacing the word 'Something' by the name of your ContentType
  */
 
 include lib.util.Util;
@@ -28,7 +26,7 @@ include lib.util.Util;
 // Note: Returning null disables this mapping template for the type mapper. 
 // Return null for example if you want to use this template only as a parent for other templates,
 // but never as a stand alone mapping template
-function getSomethingSourceType(context) {
+function getSourceType(context) {
 	return null;	
 }
 
@@ -37,12 +35,11 @@ function getSomethingSourceType(context) {
 //
 // Advanced mode: You may also return a list of strings containing the names of several parents
 // to inherit fields from.
-function getSomethingParentTemplate() {
+function getParentTemplate() {
     return null;
 }
 
-//Change the name of this function to map[Name_of_content_type]
-function mapSomething(document, data) {
+function mapObject(document, data) {
     document += {
         //Insert field mapping here
         //Note that existing fields and decorators will be replaced when overriden,

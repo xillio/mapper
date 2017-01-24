@@ -44,9 +44,16 @@ private function getMappings() {
 		        files += collect(filter<isXillFile>(File.iterateFiles(folder.path, false)));
 		    }
 		}
+		if(Collection.length(files) == 1){
+		    Assert.error("No mapping robots found in project.");
+		}
         return files;
     } fail (error) {
-        System.print ("Error getting mapping robots: " :: error, "error");
+        System.print(
+            "Error getting mapping robots \n" ::
+            "Message: " :: error.message :: "\n" ::
+            "In robot: " :: error.robot :: "\n" :: 
+            "At line: " :: error.line);
     }
 }
 
@@ -91,7 +98,7 @@ private function getMappingBotTemplate(templatePath) {
 * Adds an include-statement for current mapping to the input string.
 */
 private function addIncludeStatement(includeStatements, mapping) {
-    var newInclude = "include " :: getMappingFQName(mapping) :: ";\n";
+    var newInclude = "include " :: getMappingFQName(mapping) :: " as " :: getQualifiedName(mapping) ::";\n";
     
     return includeStatements :: newInclude;
 }
@@ -114,14 +121,14 @@ private function addIfStatement(ifStatements, mapping) {
 
 private function getMapBlock(contentType) {
     var block = "
-        var parentContentType = get__CONTENTTYPE__ParentTemplate();
+        var parentContentType = __CONTENTTYPE__->getParentTemplate();
         if(parentContentType != null && parentContentType != \"\") {
             foreach(type in parentContentType) {
                 var parent = mapObject(object, type);
-                result += map__CONTENTTYPE__(parent, object);
+                result += __CONTENTTYPE__->mapObject(parent, object);
             }
         } else {
-            result = map__CONTENTTYPE__({}, object);
+            result = __CONTENTTYPE__->mapObject({}, object);
         }";
     return String.replace(block, "__CONTENTTYPE__", contentType, false);
 }
@@ -133,7 +140,7 @@ private function addTypeStatement(typeStatements, mapping) {
 private function getTypeMappingBlock(contentType) {
 	contentType = getMappingName(contentType);
     var block = "
-    	targetType = matchTargetType(get__CONTENTTYPE__SourceType(context), type, \"__CONTENTTYPE__\");
+    	targetType = matchTargetType(__CONTENTTYPE__->getSourceType(context), type, \"__CONTENTTYPE__\");
 		if (targetType != null) { return targetType; }
 		";
     return String.replace(block, "__CONTENTTYPE__", contentType, false);	
@@ -159,7 +166,7 @@ private function saveMapper(template, replacements) {
 private function getMappingChecksum(mapperPath) {
     var result = null;
     if (File.exists(mapperPath)) {
-        var text = File.getText(mapperPath);
+        var text = Stream.getText(File.openRead(mapperPath));
         result = String.replace(text, ".*// Checksum: ([0-9,a-f]{32}).*", "$1");
     }
     return result;
@@ -187,4 +194,11 @@ function getMappingFQName(mapping) {
     var searchString = normalizeSlashes(System.info().projectPath) :: "/(.*)\\.xill";
     var relativePath = (String.replace(normalizeSlashes(mapping), searchString, "$1"));
     return (String.replace (relativePath, "[/\\\\]", "."));
+}
+
+/**
+* Returns the name for the include of a mapper
+*/
+function getQualifiedName(mapping){
+    return String.split(String.substring(mapping,0,String.length(mapping)-5),"\\\\",false)[Collection.length(String.split(mapping,"\\\\",false))-1];
 }
