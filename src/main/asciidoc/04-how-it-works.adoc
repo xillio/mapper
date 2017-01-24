@@ -12,7 +12,7 @@ Once you run `Build.xill` the following processes will be executed:
     project. If the name of a folder is `mappings` all the paths to the robots inside of that folder are added to a list.
 
 2.  The `generateMapper` function is called. This function reads the contents of the `_MapperTemplate` robot. This is
-    the template for the mapper. It contains three placeholders (`INCLUDE_MAPPING`, `IF_MAPPING` and `TYPE_MAPPING`)
+    the template for the mapper. It contains three placeholders (`\__INCLUDE_MAPPING___`, `\\__IF_MAPPING___` and `\\__TYPE_MAPPING__`)
     that will be replaced by the strings constructed in the following steps.
 
 3.  Three functions are called for each robot found in step 1. The result of each function is appended to the
@@ -27,9 +27,9 @@ Once you run `Build.xill` the following processes will be executed:
 
 4.  The saveMapper function is called. This will replace the placeholders in the template from step 2 with the variables
     from step 3.
-        *   `INCLUDE_MAPPING` is replaced with the `includeStatements` variable.
-        *   `IF_MAPING` is replaced with the `ifStatements` variable.
-        *   `TYPE_MAPPING` is replaced with the `typeStatements` variable.
+        *   `\\__INCLUDE_MAPPING__` is replaced with the `includeStatements` variable.
+        *   `\\__IF_MAPPING__` is replaced with the `ifStatements` variable.
+        *   `\\__TYPE_MAPPING__` is replaced with the `typeStatements` variable.
 
 5. The resulting string will be saved as `Mapper.xill` in `./config/` (where the `.` represents the project root).
 
@@ -72,11 +72,3 @@ if(parentContentType != null && parentContentType != "") {  // <3>
 
 This function compares the provided contentType to the output of `getSourceType` function of each mapping.
 If the provided contentType is equal to one of these then the contentType of this mapping is returned.
-
-== Mapping.xill functions
-
-=== getSourceType(context)
-
-=== getParentTemplate()
-
-=== mapObject(document, data)
