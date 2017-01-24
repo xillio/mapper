@@ -1,24 +1,37 @@
 = How it works
 
-== Running Build.xill
-1. The getMappings function is called.
-This function recursively iterates over all folders in the root of the project. If the name of a folder is '_mappings_' all the paths to the robots inside of that folder are added to a list.
+In this section we shall explain how the mapper library works behind the scenes. This is information that is not
+necessarily needed to perform mappings, but it might come in handy once certain things about these mappings are unclear.
+It might also give some insight as to why certain design choices are made for this library.
 
-2. The generateMapper function is called.
-This function reads the contents of the `_MapperTemplate` robot. This is the template for the mapper.
-It contains three placeholders (`INCLUDE_MAPPING`, `IF_MAPPING`, `TYPE_MAPPING`) that will be replaced by the strings constructed in the following steps.
+== Process of Build.xill
 
-3. Three functions are called for each robot found in step 1.  The result of each function is appended to the corresponding variable.
-    * The `addIncludeStatement` function append to the `includeStatements` variable. +
-    * The `addIfStatement` function append to the `ifStatements` variable. +
-    * The `addTypeStatement` function append to the  `typeStatements` variable. +
+Once you run `Build.xill` the following processes will be executed:
 
-4. The saveMapper function is called. This will replace the placeholders in the template from step 2 with the variables from step 3.
-   * `INCLUDE_MAPPING` is replaced with the `includeStatements` variable +
-   * `IF_MAPING` is replaced with the `ifStatements` variable +
-   * `TYPE_MAPPING` is replaced with the `typeStatements` variable +
+1.  The `getMappings` function is called. This function recursively iterates over all folders in the root of the
+    project. If the name of a folder is `mappings` all the paths to the robots inside of that folder are added to a list.
 
-5. The resulting string will be saved as `Mapper.xill` in root/config/
+2.  The `generateMapper` function is called. This function reads the contents of the `_MapperTemplate` robot. This is
+    the template for the mapper. It contains three placeholders (`INCLUDE_MAPPING`, `IF_MAPPING` and `TYPE_MAPPING`)
+    that will be replaced by the strings constructed in the following steps.
+
+3.  Three functions are called for each robot found in step 1. The result of each function is appended to the
+    corresponding variable.
+        *   The `addIncludeStatement` function appends the include for this mapping robot to the `includeStatements`
+            variable as a qualified include. The qualified name is equal to the name of the robot.
+        *   The `addIfStatement` function appends the if-statement, that corresponds to mapping to this mapping robot,
+            to the `ifStatements` variable.
+        *   The `addTypeStatement` function appends the type-checking, that corresponds to the accepted source
+            contentType, to the `typeStatements` variable. This means that is mapping A accepts contentTypes X and Y,
+            that the type-check returns mapping A if the provided contentType is X or Y.
+
+4.  The saveMapper function is called. This will replace the placeholders in the template from step 2 with the variables
+    from step 3.
+        *   `INCLUDE_MAPPING` is replaced with the `includeStatements` variable.
+        *   `IF_MAPING` is replaced with the `ifStatements` variable.
+        *   `TYPE_MAPPING` is replaced with the `typeStatements` variable.
+
+5. The resulting string will be saved as `Mapper.xill` in `./config/` (where the `.` represents the project root).
 
 == Mapper.xill functions
 
