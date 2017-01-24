@@ -8,7 +8,7 @@
  * and runs the appropriate script based on the provided ContentType.
  */
 
-use System, Stream, File, String, Properties, Assert,Collection;
+use System, Stream, File, String, Assert, Collection;
 
 include lib.util.AllUtil;
 
