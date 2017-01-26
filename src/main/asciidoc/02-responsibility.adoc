@@ -1,0 +1,15 @@
+= Responsibilities
+
+The mapper library is responsible for providing a standardized way to do type and field level mapping in projects.
+
+Furthermore, it is responsible for making the connectors independent of mapping, which means that the connector
+does not have to do any specific mapping by default, but it would be nice to deliver standard mappings with it.
+
+The mapper library is also responsible for simplifying mapping effort and improving maintainability. This is done by
+standardizing the mapping layout and providing inheritance in the mappings.
+
+It also makes mappings self-contained by having them provide the source types that they apply to. This means that the
+custom contentType decision logic is located in the mapping itself, making connectors independent of business logic.
+
+The mapper library automates generation of a mapping robot that is checked at compile time and simplifies debugging.
+This robot will be the entry point to do all mappings and handles the corresponding mapping itself.

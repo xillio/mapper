@@ -1,0 +1,7 @@
+= Introduction
+
+Data transformation is a complex process, which becomes progressively more difficult as content grows. To make this
+problem easier we decided to transform content from and to the UDM. The goal of this model is to
+make it easier to transform data, especially to and from different source systems. This library makes it possible to
+map data to and from this model in a standardized way. This document is to help anyone willing to work with this
+library, since it will explain on how to use it and how it works.

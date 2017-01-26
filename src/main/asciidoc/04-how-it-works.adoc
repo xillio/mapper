@@ -1,0 +1,75 @@
+= How it works
+
+In this section we shall explain how the mapper library works behind the scenes. This is information that is not
+necessarily needed to perform mappings, but it might come in handy once certain things about these mappings are unclear.
+It might also give some insight as to why certain design choices are made for this library.
+
+== Process of Build.xill
+
+Once you run `Build.xill` the following processes will be executed:
+
+1.  The `getMappings` function is called. This function recursively iterates over all folders in the root of the
+    project. If the name of a folder is `mappings` all the paths to the robots inside of that folder are added to a list.
+
+2.  The `generateMapper` function is called. This function reads the contents of the `_MapperTemplate` robot. This is
+    the template for the mapper. It contains three placeholders (`\__INCLUDE_MAPPING___`, `\\__IF_MAPPING___` and `\\__TYPE_MAPPING__`)
+    that will be replaced by the strings constructed in the following steps.
+
+3.  Three functions are called for each robot found in step 1. The result of each function is appended to the
+    corresponding variable.
+        *   The `addIncludeStatement` function appends the include for this mapping robot to the `includeStatements`
+            variable as a qualified include. The qualified name is equal to the name of the robot.
+        *   The `addIfStatement` function appends the if-statement, that corresponds to mapping to this mapping robot,
+            to the `ifStatements` variable.
+        *   The `addTypeStatement` function appends the type-checking, that corresponds to the accepted source
+            contentType, to the `typeStatements` variable. This means that is mapping A accepts contentTypes X and Y,
+            that the type-check returns mapping A if the provided contentType is X or Y.
+
+4.  The saveMapper function is called. This will replace the placeholders in the template from step 2 with the variables
+    from step 3.
+        *   `\\__INCLUDE_MAPPING__` is replaced with the `includeStatements` variable.
+        *   `\\__IF_MAPPING__` is replaced with the `ifStatements` variable.
+        *   `\\__TYPE_MAPPING__` is replaced with the `typeStatements` variable.
+
+5. The resulting string will be saved as `Mapper.xill` in `./config/` (where the `.` represents the project root).
+
+== Mapper.xill functions
+
+The Mapper robot has two public functions: `mapObject` and `mapSourceToTargetType`.
+
+=== mapObject(object, contentType)
+
+This function will map the object (first parameter) to the specified contentType (second parameter).
+
+The function contains an if-statement for each contentType it could find during the creation of the Mapper.
+If the provided contentType is equal to one of these contentTypes then it will run the following code:
+
+
+----
+include config.mappings.AlfrescoUDMUser as alfrescoUDMUser;         // <1>
+...
+
+var parentContentType = alfrescoUDMUser->getParentTemplate();       // <2>
+if(parentContentType != null && parentContentType != "") {          // <3>
+    foreach(type in parentContentType) {                            // <4>
+        var parent = mapObject(object, type);
+        result += alfrescoUDMUser->mapObject(parent, object);
+    }
+} else {
+    result = alfrescoUDMUser->mapObject({}, object);                // <5>
+}
+----
+
+<1> The mapping `config.mappins.AlfrescoUDMUser` gets qualified included, and its qualified name is the name of the robot.
+    This way the functions inside the mappings may contain the same names without any conflict happening. This is also
+    the reason why the mapping-robots *must* have a unique name.
+<2> Call `getParentTemplate()` from the mapping to resolve its parents.
+<3> Check if `AlfrescoUDMUser` has a `parentContentType`.
+<4> Iterate over these parent content types and call `mapObject` on these parent mappings before calling `alfrescoUDMUser->mapObject`.
+    This is how the order of the mappings is resolved.
+<5> The mapping does not have a parent so just call `alfrescoUDMUser->mapObject`.
+
+=== mapSourceToTargetType(contentType, context)
+
+This function compares the provided contentType to the output of `getSourceType` function of each mapping.
+If the provided contentType is equal to one of these then the contentType of this mapping is returned.

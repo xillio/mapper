@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>nl.xillio.libs</groupId>
+    <artifactId>mapper</artifactId>
+    <version>1.0.2-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>Xill Mapper Library</name>
+    <description>The library responsible for creating robots that map documents to and from UDM</description>
+
+    <properties>
+        <docs.directory>${project.build.directory}/generated-docs</docs.directory>
+        <docs.html.directory>${docs.directory}/html</docs.html.directory>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctor-maven-plugin</artifactId>
+                <version>1.5.2</version>
+                <configuration>
+                    <outputDirectory>${docs.directory}</outputDirectory>
+                    <sourceDocumentName>index.adoc</sourceDocumentName>
+                    <doctype>book</doctype>
+                    <sourceHighlighter>highlight.js</sourceHighlighter>
+                    <attributes>
+                        <revnumber>${project.version}</revnumber>
+                    </attributes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>generate-html-docs</id>
+                        <goals>
+                            <goal>process-asciidoc</goal>
+                        </goals>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <backend>html</backend>
+                            <outputDirectory>${docs.html.directory}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>package-zip</id>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <descriptor>${project.basedir}/src/main/assembly.xml</descriptor>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

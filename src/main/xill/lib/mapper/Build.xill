@@ -1,14 +1,14 @@
 /**
  * Project: Mapper
- * Author: Titus Nachbauer, Ernst van Rheenen
+ * Author: Titus Nachbauer, Ernst van Rheenen, Sander Visser
  * Date: 2016-06-23
  *
- * Build.xill provides generates Mapper.xill in the appropriate config/ subfolder, 
- * which will include all mapping scripts in the mappings subfolder and runs the appropriate
- * script based on the provided ContentType.
+ * Build.xill generates a Mapper.xill in <rootFolder>/config/ 
+ * which will include all mapping scripts it can find in all subfolders named 'mappings' 
+ * and runs the appropriate script based on the provided ContentType.
  */
 
-use System, Stream, File, String, Properties, Assert;
+use System, Stream, File, String, Assert, Collection;
 
 include lib.util.AllUtil;
 
@@ -17,74 +17,69 @@ include lib.util.AllUtil;
 //						  SETUP
 //-------------------------------------------------------------------------
 
-// get the build arguments passed by the calling bot or else use the defaults set in defaults.properties
-argument buildSettings = {
-    "mappingPath" : Properties.get("connector.export.mappingPath"),
-    "mapperType" : Properties.get ("connector.export.mapperType"),
-};
-
-buildSettings.templatePath = Properties.get("lib.mapper.template"); 
+var templatePath = "lib/mapper/template/_MapperTemplate.xill";
+var mappings = getMappings();
+var checksum = generateChecksumFromList(mappings);
 
 //-------------------------------------------------------------------------
 //						  MAIN
 //-------------------------------------------------------------------------
-buildSettings.mappingPath = String.split(buildSettings.mappingPath, ";");
-buildSettings.mappings = getMappings(buildSettings.mappingPath);
-buildSettings.checksum = generateChecksumFromList(buildSettings.mappings);
 
-    System.print("buildSettings: " :: buildSettings, "debug");
-
-if(!String.matches(String.toLower(buildSettings.mapperType), "(export|import)")) {
-	Assert.error("lib.mapper.Build: Argument mapperType should be either 'export' or 'import'. Found: " :: buildSettings.mapperType);
-}
-
-generateMapper(buildSettings);
-return buildSettings.checksum;
+generateMapper();
+return checksum;
 
 //-------------------------------------------------------------------------
 //						  FUNCTIONS
 //-------------------------------------------------------------------------
 
 /**
-* Returns any mapping robots in the provided folder(s), assuming it only contains 
-* mapping robots.
-* Arguments:
-*   mappingFolders: Path or list of paths to be scanned for mapping files
+* Returns any mapping robots it can find starting from the rootfolder.
+* It is assumed that folders named 'mappings' only contain mapping robots.
 */
-private function getMappings(mappingFolders) {
+private function getMappings() {
     do {
 	    var files = [];
-		foreach(path in mappingFolders) {
-			files += collect(filter<isXillFile>(File.iterateFiles(path, false)));
+	    foreach(folder in File.iterateFolders(System.info().projectPath,true)){
+	        if(String.endsWith(folder.path,"mappings")){
+		        files += collect(filter<isXillFile>(File.iterateFiles(folder.path, false)));
+		    }
+		}
+		if(Collection.length(files) == 1){
+		    Assert.error("No mapping robots found in project.");
 		}
         return files;
     } fail (error) {
-        System.print ("Error getting mapping robots: " :: error, "error");
+        System.print(
+            "Error getting mapping robots \n" ::
+            "Message: " :: error.message :: "\n" ::
+            "In robot: " :: error.robot :: "\n" :: 
+            "At line: " :: error.line);
     }
 }
 
 /**
 * Generate a main mapping robot based on the provided mappings and save it
-* at the provided location.
+* at the rootFolder/config/
 */
-private function generateMapper(buildSettings) {
-    var template = getMappingBotTemplate(buildSettings.templatePath);
-    var includeStatements = "";
-    var ifStatements = "";
-    var typeStatements = "";
-    foreach (mapping in buildSettings.mappings) {
-        includeStatements = addIncludeStatement(includeStatements, mapping);
-        ifStatements = addIfStatement(ifStatements, mapping);
-        typeStatements = addTypeStatement(typeStatements, mapping);
-    }
+private function generateMapper() {
+        var template = getMappingBotTemplate(templatePath);
+        var includeStatements = "";
+        var ifStatements = "";
+        var typeStatements = "";
+        foreach (mapping in mappings) {
+            includeStatements = addIncludeStatement(includeStatements, mapping);
+            ifStatements = addIfStatement(ifStatements, mapping);
+            typeStatements = addTypeStatement(typeStatements, mapping);
+        }
+        
+        var replacements = {
+        	"__INCLUDE_MAPPING__" : includeStatements, 
+        	"__IF_MAPPING__" : ifStatements, 
+        	"__TYPE_MAPPING__" : typeStatements, 
+        	"__MAPPING_CHECKSUM__" : getChecksumStatement(checksum)	
+        };
+        saveMapper(template, replacements);
     
-    var replacements = {
-    	"__INCLUDE_MAPPING__" : includeStatements, 
-    	"__IF_MAPPING__" : ifStatements, 
-    	"__TYPE_MAPPING__" : typeStatements, 
-    	"__MAPPING_CHECKSUM__" : getChecksumStatement(buildSettings.checksum)	
-    };
-    saveMapper("config/" :: buildSettings.mapperType :: "/Mapper.xill", template, replacements);
 }
 
 /**
@@ -103,7 +98,7 @@ private function getMappingBotTemplate(templatePath) {
 * Adds an include-statement for current mapping to the input string.
 */
 private function addIncludeStatement(includeStatements, mapping) {
-    var newInclude = "include " :: getMappingFQName(mapping) :: ";\n";
+    var newInclude = "include " :: getMappingFQName(mapping) :: " as " :: getQualifiedName(mapping) ::";\n";
     
     return includeStatements :: newInclude;
 }
@@ -126,14 +121,14 @@ private function addIfStatement(ifStatements, mapping) {
 
 private function getMapBlock(contentType) {
     var block = "
-        var parentContentType = get__CONTENTTYPE__ParentTemplate();
+        var parentContentType = __CONTENTTYPE__->getParentTemplate();
         if(parentContentType != null && parentContentType != \"\") {
             foreach(type in parentContentType) {
                 var parent = mapObject(object, type);
-                result += map__CONTENTTYPE__(parent, object);
+                result += __CONTENTTYPE__->mapObject(parent, object);
             }
         } else {
-            result = map__CONTENTTYPE__({}, object);
+            result = __CONTENTTYPE__->mapObject({}, object);
         }";
     return String.replace(block, "__CONTENTTYPE__", contentType, false);
 }
@@ -145,7 +140,7 @@ private function addTypeStatement(typeStatements, mapping) {
 private function getTypeMappingBlock(contentType) {
 	contentType = getMappingName(contentType);
     var block = "
-    	targetType = matchTargetType(get__CONTENTTYPE__SourceType(context), type, \"__CONTENTTYPE__\");
+    	targetType = matchTargetType(__CONTENTTYPE__->getSourceType(context), type, \"__CONTENTTYPE__\");
 		if (targetType != null) { return targetType; }
 		";
     return String.replace(block, "__CONTENTTYPE__", contentType, false);	
@@ -158,11 +153,11 @@ private function getChecksumStatement (checksum) {
 /**
 * Save the previously generated include- and if-statements to the central mapping bot 
 */
-private function saveMapper(mapperPath, template, replacements) {
+private function saveMapper(template, replacements) {
 	foreach(label, replacement in replacements) {
 		template = String.replace(template, label, replacement, false);
 	}
-    saveFile(mapperPath, template);
+    saveFile("config/Mapper.xill", template);
 }
 
 /**
@@ -171,7 +166,7 @@ private function saveMapper(mapperPath, template, replacements) {
 private function getMappingChecksum(mapperPath) {
     var result = null;
     if (File.exists(mapperPath)) {
-        var text = File.getText(mapperPath);
+        var text = Stream.getText(File.openRead(mapperPath));
         result = String.replace(text, ".*// Checksum: ([0-9,a-f]{32}).*", "$1");
     }
     return result;
@@ -199,4 +194,11 @@ function getMappingFQName(mapping) {
     var searchString = normalizeSlashes(System.info().projectPath) :: "/(.*)\\.xill";
     var relativePath = (String.replace(normalizeSlashes(mapping), searchString, "$1"));
     return (String.replace (relativePath, "[/\\\\]", "."));
+}
+
+/**
+* Returns the name for the include of a mapper
+*/
+function getQualifiedName(mapping){
+    return String.split(String.substring(mapping,0,String.length(mapping)-5),"\\\\",false)[Collection.length(String.split(mapping,"\\\\",false))-1];
 }
