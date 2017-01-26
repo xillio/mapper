@@ -14,4 +14,4 @@ source code.
 
 ## License
 
-The Mapper Library is licensed under the INSERT LICENSE.
+The Mapper Library is licensed under the [Apache License, Version 2](LICENSE).
