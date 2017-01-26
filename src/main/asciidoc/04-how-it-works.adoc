@@ -35,7 +35,7 @@ Once you run `Build.xill` the following processes will be executed:
 
 == Mapper.xill functions
 
-The Mapper robot has two public functions: `mapObject and mapSourceToTargetType.
+The Mapper robot has two public functions: `mapObject` and `mapSourceToTargetType`.
 
 === mapObject(object, contentType)
 
@@ -44,29 +44,30 @@ This function will map the object (first parameter) to the specified contentType
 The function contains an if-statement for each contentType it could find during the creation of the Mapper.
 If the provided contentType is equal to one of these contentTypes then it will run the following code:
 
+
 ----
-include ../Example.xill as example;                         // <1>
+include config.mappings.AlfrescoUDMUser as alfrescoUDMUser;         // <1>
 ...
 
-var parentContentType = example->getParentTemplate();       // <2>
-if(parentContentType != null && parentContentType != "") {  // <3>
-    foreach(type in parentContentType) {                    // <4>
+var parentContentType = alfrescoUDMUser->getParentTemplate();       // <2>
+if(parentContentType != null && parentContentType != "") {          // <3>
+    foreach(type in parentContentType) {                            // <4>
         var parent = mapObject(object, type);
-        result += example->mapObject(parent, object);
+        result += alfrescoUDMUser->mapObject(parent, object);
     }
 } else {
-    result = example->mapObject({}, object);                // <5>
+    result = alfrescoUDMUser->mapObject({}, object);                // <5>
 }
 ----
 
-<1> The mapping `Example.xill` gets qualified included, and its qualified name is the name of the robot. This results
-    in that the functions inside the mappings may contain the same names without any conflict happening. This is also
+<1> The mapping `config.mappins.AlfrescoUDMUser` gets qualified included, and its qualified name is the name of the robot.
+    This way the functions inside the mappings may contain the same names without any conflict happening. This is also
     the reason why the mapping-robots *must* have a unique name.
-<2> Call the `getParentTemplate` function from the mapping to resolve its parents.
-<3> Check if the example mapping has a parentContentType.
-<4> Iterate over these parentContentTypes and call mapObject on these parent mappings before calling `example->mapObject`.
-    This results in that the result from the parent mapping gets enriched with the result from `example->mapObject`.
-<5> The mapping does not have a parent so just call the `example->mapObject` function.
+<2> Call `getParentTemplate()` from the mapping to resolve its parents.
+<3> Check if `AlfrescoUDMUser` has a `parentContentType`.
+<4> Iterate over these parent content types and call `mapObject` on these parent mappings before calling `alfrescoUDMUser->mapObject`.
+    This is how the order of the mappings is resolved.
+<5> The mapping does not have a parent so just call `alfrescoUDMUser->mapObject`.
 
 === mapSourceToTargetType(contentType, context)
 

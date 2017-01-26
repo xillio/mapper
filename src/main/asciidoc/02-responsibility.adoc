@@ -2,7 +2,7 @@
 
 The mapper library is responsible for providing a standardized way to do type and field level mapping in projects.
 
-It is furthermore responsible for making the connectors independent of mapping, which means that the connector
+Furthermore, it is responsible for making the connectors independent of mapping, which means that the connector
 does not have to do any specific mapping by default, but it would be nice to deliver standard mappings with it.
 
 The mapper library is also responsible for simplifying mapping effort and improving maintainability. This is done by
