@@ -54,12 +54,12 @@ return checksum;
 private function getMappings() {
     do {
 	    var files = [];
-	    foreach(folder in File.iterateFolders(System.info().projectPath,true)){
+	    foreach(folder in File.iterateFolders(System.info().workingDirectory,true)){
 	        if(String.endsWith(folder.path,"mappings")){
 		        files += collect(filter<isXillFile>(File.iterateFiles(folder.path, false)));
 		    }
 		}
-		if(Collection.length(files) == 1){
+		if(Collection.length(files) == 0){
 		    Assert.error("No mapping robots found in project.");
 		}
         return files;
@@ -68,7 +68,8 @@ private function getMappings() {
             "Error getting mapping robots \n" ::
             "Message: " :: error.message :: "\n" ::
             "In robot: " :: error.robot :: "\n" :: 
-            "At line: " :: error.line);
+            "At line: " :: error.line, 
+            "warning");
     }
 }
 
@@ -206,7 +207,7 @@ function getMappingFunction(mapping) {
 * Returns the fully qualified path used to include mapping. 
 */
 function getMappingFQName(mapping) {
-    var searchString = normalizeSlashes(System.info().projectPath) :: "/(.*)\\.xill";
+    var searchString = normalizeSlashes(System.info().workingDirectory) :: "/(.*)\\.xill";
     var relativePath = (String.replace(normalizeSlashes(mapping), searchString, "$1"));
     return (String.replace (relativePath, "[/\\\\]", "."));
 }
@@ -215,5 +216,10 @@ function getMappingFQName(mapping) {
 * Returns the name for the include of a mapper
 */
 function getQualifiedName(mapping){
-    return String.split(String.substring(mapping,0,String.length(mapping)-5),"\\\\",false)[Collection.length(String.split(mapping,"\\\\",false))-1];
+    var splitPackage = String.split(mapping,"[\\\\/]");
+    var indexOfName = Collection.length(splitPackage)-1;
+    var lengthWithoutXill = String.length(mapping)-5;
+    var path = String.substring(mapping,0,lengthWithoutXill);
+    var qualifiedName= String.split(path,"[\\\\/]")[indexOfName];
+    return qualifiedName;
 }
