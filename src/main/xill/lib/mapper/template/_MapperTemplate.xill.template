@@ -24,11 +24,11 @@
  * DO NOT MAKE MANUAL CHANGES TO THIS FILE
  */
 
-${mapping.checksum}
+${checksum}
 
 use System, String, Collection, Assert;
 
-${include.mapping}
+${includes}
 
 //-------------------------------------------------------------------------
 //						  FUNCTIONS

@@ -23,16 +23,16 @@
  * and runs the appropriate script based on the provided ContentType.
  */
 
-use System, Stream, File, String, Assert, Collection;
+use System, Stream, File, String, Assert, Collection, Template;
 
 include lib.util.AllUtil;
-
 
 //-------------------------------------------------------------------------
 //						  SETUP
 //-------------------------------------------------------------------------
 
 var templatePath = "lib/mapper/template/_MapperTemplate.xill.template";
+var mapperOutput = "config/Mapper.xill";
 var mappings = getMappings();
 var checksum = generateChecksumFromList(mappings);
 
@@ -54,12 +54,12 @@ return checksum;
 private function getMappings() {
     do {
         var files = [];
-        foreach(folder in File.iterateFolders(System.info().workingDirectory,true)){
-            if(String.endsWith(folder.path,"mappings")){
+        foreach (folder in File.iterateFolders(System.info().workingDirectory, true)) {
+            if (String.endsWith(folder.path,"mappings")) {
                 files += collect(filter<isXillFile>(File.iterateFiles(folder.path, false)));
             }
         }
-        if(Collection.length(files) == 0){
+        if (Collection.length(files) == 0) {
             Assert.error("No mapping robots found in project.");
         }
         return files;
@@ -78,7 +78,6 @@ private function getMappings() {
 * at the rootFolder/config/
 */
 private function generateMapper() {
-    var template = getMappingBotTemplate(templatePath);
     var includeStatements = "";
     var ifStatements = "";
     var typeStatements = "";
@@ -88,25 +87,15 @@ private function generateMapper() {
         typeStatements = addTypeStatement(typeStatements, mapping);
     }
 
-    var replacements = {
-        "include.mapping" : includeStatements,
+    var model = {
+        "includes" : includeStatements,
         "if.mapping" : ifStatements,
         "type.mapping" : typeStatements,
-        "mapping.checksum" : getChecksumStatement(checksum)
+        "checksum" : getChecksumStatement(checksum)
     };
-    saveMapper(template, replacements);
-}
 
-/**
-* Returns the text of the mapping bot template file
-*/
-private function getMappingBotTemplate(templatePath) {
-    do {
-        var file = File.openRead(templatePath);
-        return Stream.getText(file);
-    } fail (error) {
-        System.print ("Error opening or reading mapping bot template: " :: error, "error");
-    }
+    var outputStream = File.openWrite(mapperOutput);
+    Template.process(templatePath, outputStream, model);
 }
 
 /**
@@ -163,16 +152,6 @@ private function getTypeMappingBlock(contentType) {
 
 private function getChecksumStatement (checksum) {
     return "// Checksum: " :: checksum;
-}
-
-/**
-* Save the previously generated include- and if-statements to the central mapping bot
-*/
-private function saveMapper(template, replacements) {
-    foreach(label, replacement in replacements) {
-        template = String.replace(template, "${" :: label :: "}", replacement, false);
-    }
-    saveFile("config/Mapper.xill", template);
 }
 
 /**
