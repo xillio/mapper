@@ -18,8 +18,8 @@
  * Author: Titus Nachbauer, Ernst van Rheenen, Sander Visser
  * Date: 2016-06-23
  *
- * Build.xill generates a Mapper.xill in <rootFolder>/config/ 
- * which will include all mapping scripts it can find in all subfolders named 'mappings' 
+ * Build.xill generates a Mapper.xill in <rootFolder>/config/
+ * which will include all mapping scripts it can find in all subfolders named 'mappings'
  * and runs the appropriate script based on the provided ContentType.
  */
 
@@ -32,7 +32,7 @@ include lib.util.AllUtil;
 //						  SETUP
 //-------------------------------------------------------------------------
 
-var templatePath = "lib/mapper/template/_MapperTemplate.xill";
+var templatePath = "lib/mapper/template/_MapperTemplate.xill.template";
 var mappings = getMappings();
 var checksum = generateChecksumFromList(mappings);
 
@@ -53,22 +53,22 @@ return checksum;
 */
 private function getMappings() {
     do {
-	    var files = [];
-	    foreach(folder in File.iterateFolders(System.info().workingDirectory,true)){
-	        if(String.endsWith(folder.path,"mappings")){
-		        files += collect(filter<isXillFile>(File.iterateFiles(folder.path, false)));
-		    }
-		}
-		if(Collection.length(files) == 0){
-		    Assert.error("No mapping robots found in project.");
-		}
+        var files = [];
+        foreach(folder in File.iterateFolders(System.info().workingDirectory,true)){
+            if(String.endsWith(folder.path,"mappings")){
+                files += collect(filter<isXillFile>(File.iterateFiles(folder.path, false)));
+            }
+        }
+        if(Collection.length(files) == 0){
+            Assert.error("No mapping robots found in project.");
+        }
         return files;
     } fail (error) {
         System.print(
             "Error getting mapping robots \n" ::
             "Message: " :: error.message :: "\n" ::
-            "In robot: " :: error.robot :: "\n" :: 
-            "At line: " :: error.line, 
+            "In robot: " :: error.robot :: "\n" ::
+            "At line: " :: error.line,
             "warning");
     }
 }
@@ -78,24 +78,23 @@ private function getMappings() {
 * at the rootFolder/config/
 */
 private function generateMapper() {
-        var template = getMappingBotTemplate(templatePath);
-        var includeStatements = "";
-        var ifStatements = "";
-        var typeStatements = "";
-        foreach (mapping in mappings) {
-            includeStatements = addIncludeStatement(includeStatements, mapping);
-            ifStatements = addIfStatement(ifStatements, mapping);
-            typeStatements = addTypeStatement(typeStatements, mapping);
-        }
-        
-        var replacements = {
-        	"__INCLUDE_MAPPING__" : includeStatements, 
-        	"__IF_MAPPING__" : ifStatements, 
-        	"__TYPE_MAPPING__" : typeStatements, 
-        	"__MAPPING_CHECKSUM__" : getChecksumStatement(checksum)	
-        };
-        saveMapper(template, replacements);
-    
+    var template = getMappingBotTemplate(templatePath);
+    var includeStatements = "";
+    var ifStatements = "";
+    var typeStatements = "";
+    foreach (mapping in mappings) {
+        includeStatements = addIncludeStatement(includeStatements, mapping);
+        ifStatements = addIfStatement(ifStatements, mapping);
+        typeStatements = addTypeStatement(typeStatements, mapping);
+    }
+
+    var replacements = {
+        "include.mapping" : includeStatements,
+        "if.mapping" : ifStatements,
+        "type.mapping" : typeStatements,
+        "mapping.checksum" : getChecksumStatement(checksum)
+    };
+    saveMapper(template, replacements);
 }
 
 /**
@@ -115,7 +114,7 @@ private function getMappingBotTemplate(templatePath) {
 */
 private function addIncludeStatement(includeStatements, mapping) {
     var newInclude = "include " :: getMappingFQName(mapping) :: " as " :: getQualifiedName(mapping) ::";\n";
-    
+
     return includeStatements :: newInclude;
 }
 
@@ -129,7 +128,7 @@ private function addIfStatement(ifStatements, mapping) {
     } else {
         newIf = "	else if ";
     }
-    newIf = newIf :: "(contentType == \"" :: getMappingName (mapping) :: "\") {" :: 
+    newIf = newIf :: "(contentType == \"" :: getMappingName (mapping) :: "\") {" ::
         getMapBlock(getMappingName(mapping)) :: "
     }";
     return ifStatements :: newIf;
@@ -150,16 +149,16 @@ private function getMapBlock(contentType) {
 }
 
 private function addTypeStatement(typeStatements, mapping) {
-	return typeStatements :: getTypeMappingBlock(mapping);
+    return typeStatements :: getTypeMappingBlock(mapping);
 }
 
 private function getTypeMappingBlock(contentType) {
-	contentType = getMappingName(contentType);
+    contentType = getMappingName(contentType);
     var block = "
-    	targetType = matchTargetType(__CONTENTTYPE__->getSourceType(context), type, \"__CONTENTTYPE__\");
-		if (targetType != null) { return targetType; }
-		";
-    return String.replace(block, "__CONTENTTYPE__", contentType, false);	
+        targetType = matchTargetType(__CONTENTTYPE__->getSourceType(context), type, \"__CONTENTTYPE__\");
+        if (targetType != null) { return targetType; }
+        ";
+    return String.replace(block, "__CONTENTTYPE__", contentType, false);
 }
 
 private function getChecksumStatement (checksum) {
@@ -167,12 +166,12 @@ private function getChecksumStatement (checksum) {
 }
 
 /**
-* Save the previously generated include- and if-statements to the central mapping bot 
+* Save the previously generated include- and if-statements to the central mapping bot
 */
 private function saveMapper(template, replacements) {
-	foreach(label, replacement in replacements) {
-		template = String.replace(template, label, replacement, false);
-	}
+    foreach(label, replacement in replacements) {
+        template = String.replace(template, "${" :: label :: "}", replacement, false);
+    }
     saveFile("config/Mapper.xill", template);
 }
 
@@ -204,7 +203,7 @@ function getMappingFunction(mapping) {
 }
 
 /**
-* Returns the fully qualified path used to include mapping. 
+* Returns the fully qualified path used to include mapping.
 */
 function getMappingFQName(mapping) {
     var searchString = normalizeSlashes(System.info().workingDirectory) :: "/(.*)\\.xill";

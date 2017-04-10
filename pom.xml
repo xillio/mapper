@@ -24,7 +24,7 @@
     <groupId>nl.xillio.libs</groupId>
     <artifactId>mapper</artifactId>
     <version>1.1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <packaging>xlib</packaging>
 
     <name>Xill Mapper Library</name>
     <description>The library responsible for creating robots that map documents to and from UDM</description>
@@ -36,7 +36,19 @@
     </properties>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/xill</directory>
+            </resource>
+        </resources>
+
         <plugins>
+            <plugin>
+                <groupId>nl.xillio.xill</groupId>
+                <artifactId>xill-maven-plugin</artifactId>
+                <version>3.6.0-SNAPSHOT</version>
+                <extensions>true</extensions>
+            </plugin>
             <plugin>
                 <groupId>org.asciidoctor</groupId>
                 <artifactId>asciidoctor-maven-plugin</artifactId>
@@ -80,45 +92,46 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin><plugin>
-            <groupId>com.mycila</groupId>
-            <artifactId>license-maven-plugin</artifactId>
-            <version>2.9</version>
-            <configuration>
-                <header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</header>
-                <properties>
-                    <owner>Xillio</owner>
-                    <email>support@xillio.com</email>
-                </properties>
-                <strictCheck>true</strictCheck>
-                <useDefaultExcludes>true</useDefaultExcludes>
-                <excludes>
-                    <exclude>LICENSE</exclude>
-                </excludes>
-                <mapping>
-                    <fxml>XML_STYLE</fxml>
-                    <xill>JAVADOC_STYLE</xill>
-                    <adoc>DOUBLESLASH_STYLE</adoc>
-                    <Jenkinsfile>JAVADOC_STYLE</Jenkinsfile>
-                </mapping>
-            </configuration>
-            <executions>
-                <execution>
-                    <id>validate-license-headers</id>
-                    <phase>validate</phase>
-                    <goals>
-                        <goal>check</goal>
-                    </goals>
-                </execution>
-                <execution>
-                    <id>generate-license-headers</id>
-                    <phase>clean</phase>
-                    <goals>
-                        <goal>format</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.9</version>
+                <configuration>
+                    <header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</header>
+                    <properties>
+                        <owner>Xillio</owner>
+                        <email>support@xillio.com</email>
+                    </properties>
+                    <strictCheck>true</strictCheck>
+                    <useDefaultExcludes>true</useDefaultExcludes>
+                    <excludes>
+                        <exclude>LICENSE</exclude>
+                    </excludes>
+                    <mapping>
+                        <fxml>XML_STYLE</fxml>
+                        <xill>JAVADOC_STYLE</xill>
+                        <adoc>DOUBLESLASH_STYLE</adoc>
+                        <Jenkinsfile>JAVADOC_STYLE</Jenkinsfile>
+                    </mapping>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>validate-license-headers</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>generate-license-headers</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

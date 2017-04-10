@@ -1,0 +1,51 @@
+/**
+ * Copyright (C) 2016 Xillio (support@xillio.com)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+/**
+ * Project: demo_drupal_aem
+ * Author: Titus Nachbauer
+ * Date: 2016-06-29
+ *
+ * UDMUtil.xill is a library of often used functions related to UDM.
+ * It is recommended to include it through your project's Commons library.
+ */
+
+use System, Stream, Mongo;
+
+//-------------------------------------------------------------------------
+//						  FUNCTIONS
+//-------------------------------------------------------------------------
+
+/**
+* Returns the connection to the default UDM database
+*/
+function getUDMConnection(database){
+    do {
+        return Mongo.connect (database);
+    } fail (error) {
+        System.print("Error connecting to UDM database: " :: database :: ", error: ", "error");
+    }
+}
+
+/**
+* Clears the documents collection in the Mongo database
+*/
+function clearUDMDocuments(database) {
+    do {
+        Mongo.drop("documents", database);
+    } fail (error) {
+        System.print("Error clearing UDM documents: " :: database :: ", error: ", "error");
+    }
+}
