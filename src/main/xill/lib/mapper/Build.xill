@@ -89,8 +89,8 @@ private function generateMapper() {
 
     var model = {
         "includes" : includeStatements,
-        "if.mapping" : ifStatements,
-        "type.mapping" : typeStatements,
+        "switch" : ifStatements,
+        "types" : typeStatements,
         "checksum" : getChecksumStatement(checksum)
     };
 

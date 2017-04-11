@@ -45,7 +45,7 @@ ${includes}
  */
 function mapObject(object, contentType) {
     var result = {};
-${if.mapping}
+${switch}
 	else {
 		Assert.error("Unsupported contentType: " :: contentType);
 	}
@@ -64,7 +64,7 @@ ${if.mapping}
 function mapSourceToTargetType(contentType, context) {
 	foreach(type in [contentType, "DEFAULT"]) {
 		var targetType = null;
-${type.mapping}
+${types}
 	}
 	Assert.error("No template match found for contentType: " :: contentType);
 }
