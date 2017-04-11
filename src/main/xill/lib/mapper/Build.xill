@@ -23,7 +23,7 @@
  * and runs the appropriate script based on the provided ContentType.
  */
 
-use System, Stream, File, String, Assert, Collection, Template;
+use System, Stream, File, String, Assert, Collection, Template, Properties;
 
 include lib.util.AllUtil;
 
@@ -31,8 +31,11 @@ include lib.util.AllUtil;
 //						  SETUP
 //-------------------------------------------------------------------------
 
+argument buildSettings = {
+    "mapperType": Properties.get("connector.export.mapperType")
+};
+
 var templatePath = "lib/mapper/template/_MapperTemplate.xill.template";
-var mapperOutput = "config/Mapper.xill";
 var mappings = getMappings();
 var checksum = generateChecksumFromList(mappings);
 
@@ -94,7 +97,11 @@ private function generateMapper() {
         "checksum" : getChecksumStatement(checksum)
     };
 
-    var outputStream = File.openWrite(mapperOutput);
+    if (!String.matches(String.toLower(buildSettings.mapperType), "(export|import)")) {
+        Assert.error("Argument mapperType should be either 'export' or 'import', found: " :: buildSettings.mapperType);
+    }
+
+    var outputStream = File.openWrite("config/" :: buildSettings.mapperType :: "/Mapper.xill");
     Template.process(templatePath, outputStream, model);
 }
 
