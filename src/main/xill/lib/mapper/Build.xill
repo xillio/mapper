@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016 Xillio (support@xillio.com)
+ * Copyright (C) 2004 Xillio (support@xillio.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ private function getMappings() {
     do {
         var files = [];
         foreach (folder in File.iterateFolders(System.info().workingDirectory, true)) {
-            if (String.endsWith(folder.path,"mappings")) {
+            if (String.endsWith(folder.path,"mappings\\" :: buildSettings.mapperType)) {
                 files += collect(filter<isXillFile>(File.iterateFiles(folder.path, false)));
             }
         }
