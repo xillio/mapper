@@ -25,16 +25,15 @@
 
 use System, Stream, File, String, Assert, Collection, Template, Properties;
 
-include lib.util.AllUtil;
+include lib.util.FormatUtil;
+include lib.util.HashUtil;
+include lib.util.PathUtil;
 
 //-------------------------------------------------------------------------
 //						  SETUP
 //-------------------------------------------------------------------------
 
-argument buildSettings = {
-    "mapperType": Properties.get("connector.export.mapperType")
-};
-
+argument mapperType = "import";
 var templatePath = "lib/mapper/template/_MapperTemplate.xill.template";
 var mappings = getMappings();
 var checksum = generateChecksumFromList(mappings);
@@ -43,8 +42,19 @@ var checksum = generateChecksumFromList(mappings);
 //						  MAIN
 //-------------------------------------------------------------------------
 
-generateMapper();
-return checksum;
+function buildImportMapper() {
+    build("import");
+}
+
+function buildExportMapper() {
+    build("export");
+}
+
+private function build(type) {
+    mapperType = type;
+    generateMapper();
+    return checksum;
+}
 
 //-------------------------------------------------------------------------
 //						  FUNCTIONS
@@ -58,7 +68,7 @@ private function getMappings() {
     do {
         var files = [];
         foreach (folder in File.iterateFolders(System.info().workingDirectory, true)) {
-            if (String.endsWith(folder.path,"mappings\\" :: buildSettings.mapperType)) {
+            if (String.matches(folder.path,".*mappings[\\/]" :: mapperType)) {
                 files += collect(filter<isXillFile>(File.iterateFiles(folder.path, false)));
             }
         }
@@ -97,11 +107,11 @@ private function generateMapper() {
         "checksum" : getChecksumStatement(checksum)
     };
 
-    if (!String.matches(String.toLower(buildSettings.mapperType), "(export|import)")) {
-        Assert.error("Argument mapperType should be either 'export' or 'import', found: " :: buildSettings.mapperType);
+    if (!String.matches(String.toLower(mapperType), "(export|import)")) {
+        Assert.error("Argument mapperType should be either 'export' or 'import', found: " :: mapperType);
     }
 
-    var outputStream = File.openWrite("config/" :: buildSettings.mapperType :: "/Mapper.xill");
+    var outputStream = File.openWrite("config/" :: mapperType :: "/Mapper.xill");
     Template.process(templatePath, outputStream, model);
 }
 
