@@ -1,0 +1,12 @@
+/**
+ * Project: demo_drupal_aem
+ * Author: Titus Nachbauer
+ * Date: 2016-06-29
+ *
+ * AllUtil.xill is a library of often used functions.
+ * It is recommended to include it through your project's Commons library.
+ */
+
+include lib.util.FormatUtil;
+include lib.util.HashUtil;
+include lib.util.PathUtil;

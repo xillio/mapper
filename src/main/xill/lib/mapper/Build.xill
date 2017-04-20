@@ -25,9 +25,7 @@
 
 use System, Stream, File, String, Assert, Collection, Template, Properties;
 
-include lib.util.FormatUtil;
-include lib.util.HashUtil;
-include lib.util.PathUtil;
+include lib.util.AllUtil;
 
 //-------------------------------------------------------------------------
 //						  SETUP
