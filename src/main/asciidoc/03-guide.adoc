@@ -1,0 +1,68 @@
+//
+// Copyright (C) 2016 Xillio (support@xillio.com)
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//         http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+= Guide
+
+This is a guide on how to create a working mapper for your connectors.
+
+== Building a Mapper
+1. Add the mapper library to your connector framework project.
+
+2.  Create a folder structure for your mappings. The custom mappings (containing business-logic) should be located at
+    `config/mappings/`. The standard mappings (corresponding to a connector) should be located at
+    `connector/{connectorName}/udm/mappings/`. These folders will contain the robots created in the following step.
+[IMPORTANT]
+Robots inside folders not named `mappings` will *NOT* be detected.
+
+3.  Insert (or create) the needed mappings in the corresponding `mappings` folders. To create a mapping, please read the
+    <<building-a-mapping>> chapter.
+
+4. Run `lib/mapper/Build.xill` to create `Mapper.xill` in the `config` folder of your project.
+
+[#building-a-mapping]
+== Building a Mapping
+
+There are two types of mapping robots. The first type is a `standard mapping`, which performs mapping of a connector
+in a generic way. This means it will not contain any business-logic. The contentType of this mapping is corresponding
+to the connector, which could be for example a GitHubUser. In case you want to provide a standard mapping of a user in
+the source system, you would need a mapping from the source system data to the UDM, and a mapping from the UDM
+to the source system data. Convention would be to call the mapping from source system to UDM
+`{SourceSystem}`UDM`{ContentType}`.xill, and to call the mapping from UDM to source system
+`{SourceSystem}``{ContentType}`.xill where `SourceSystem` is the name of the source system, and `ContentType` is the
+content type to where to map to/from.
+
+The second type of a mapping robot is a `custom mapping`. This mapping contains business logic and is used
+to connect other mappings together or to enhance other mappings. This mapping must be written for each project
+and cannot be easily re-used in another project. The name of the mapping robot will be the contentType
+to map to, so please choose this name wisely. This name *must* be unique.
+
+1.  Create a new uniquely named robot where the name corresponds to the contentType it will map to.
+    See above on how to name this robot, since this depends on whether this is a standard mapping or a custom mapping.
+2.  Copy the code from `lib/mapper/template/_MappingTemplate.xill` and paste it into the newly created robot.
+    This structure must remain the same, although private functions may be added to add functionality for the supported
+    contentTypes and the actual mapping.
+3.  Edit `getSourceType(context)` to return a name (or list of names) of sourceTypes that can be converted by
+    this mapping. For standard mappings it should at least state the other standard mapping corresponding to this
+    contentType. The provided `context` parameter contains the data of the object, which could be used to
+    determine the supported contentTypes.
+4.  Edit the `getParentTemplate()` function to return a name (or list of names) of parent mappings.
+    When an object is mapped to *this* contentType it will first call mapObject on these parents.
+    This function should return `null` if the mapping does not have any parents.
+5.  Edit the `mapObject(document, data)` function to return a document based on the received data. This is where the
+    actual mapping takes place. The `document` parameter contains a document that has been built by this mapping's parents
+    which has to be extended by this mapping. The `data` parameter contains the object that has to be mapped.
+[IMPORTANT]
+The `document` parameter should not be overwritten, since this contains the mappings from the parent mappings.

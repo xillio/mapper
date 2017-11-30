@@ -1,0 +1,31 @@
+//
+// Copyright (C) 2016 Xillio (support@xillio.com)
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//         http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+= Responsibilities
+
+The mapper library is responsible for providing a standardized way to do type and field level mapping in projects.
+
+Furthermore, it is responsible for making the connectors independent of mapping, which means that the connector
+does not have to do any specific mapping by default, but it would be nice to deliver standard mappings with it.
+
+The mapper library is also responsible for simplifying mapping effort and improving maintainability. This is done by
+standardizing the mapping layout and providing inheritance in the mappings.
+
+It also makes mappings self-contained by having them provide the source types that they apply to. This means that the
+custom contentType decision logic is located in the mapping itself, making connectors independent of business logic.
+
+The mapper library automates generation of a mapping robot that is checked at compile time and simplifies debugging.
+This robot will be the entry point to do all mappings and handles the corresponding mapping itself.
